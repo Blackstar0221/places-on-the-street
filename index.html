@@ -1,69 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Store Placement Logic Puzzle</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Places on the Street</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🏪 Store Placement Puzzle</h1>
-            <div class="game-info">
-                <div class="info-item">
-                    <span class="label">Level:</span>
-                    <span id="levelDisplay">1</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Lives:</span>
-                    <span id="livesDisplay">❤️ ❤️ ❤️</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Score:</span>
-                    <span id="scoreDisplay">0</span>
-                </div>
-            </div>
-        </header>
+  <div class="app">
+    <header class="top-bar">
+      <h1>Places on the Street</h1>
+      <p class="subtitle">
+        Drag each place to the correct spot on the street. Works on computer and mobile.
+      </p>
+    </header>
 
-        <main>
-            <!-- Game Board Section -->
-            <section class="game-board-section">
-                <h2>Street Layout</h2>
-                <div class="streets-container">
-                    <!-- Street A -->
-                    <div class="street">
-                        <h3>Street A</h3>
-                        <div class="positions">
-                            <div class="position" data-street="A" data-pos="1">
-                                <span class="position-label">A1</span>
-                                <div class="store-slot" id="A1"></div>
-                            </div>
-                            <div class="position" data-street="A" data-pos="2">
-                                <span class="position-label">A2</span>
-                                <div class="store-slot" id="A2"></div>
-                            </div>
-                            <div class="position" data-street="A" data-pos="3">
-                                <span class="position-label">A3</span>
-                                <div class="store-slot" id="A3"></div>
-                            </div>
-                        </div>
-                    </div>
+    <main class="main-layout">
+      <!-- Drop zone (street map / layout) -->
+      <section class="street" id="street">
+        <div class="drop-zone" data-place="bakery">Bakery</div>
+        <div class="drop-zone" data-place="stationery">Stationery Store</div>
+        <div class="drop-zone" data-place="supermarket">Supermarket</div>
+        <div class="drop-zone" data-place="convenience">Convenience Store</div>
+        <div class="drop-zone" data-place="hamburger">Hamburger Store</div>
+        <div class="drop-zone" data-place="hospital">Hospital</div>
+      </section>
 
-                    <!-- Street B -->
-                    <div class="street">
-                        <h3>Street B</h3>
-                        <div class="positions">
-                            <div class="position" data-street="B" data-pos="1">
-                                <span class="position-label">B1</span>
-                                <div class="store-slot" id="B1"></div>
-                            </div>
-                            <div class="position" data-street="B" data-pos="2">
-                                <span class="position-label">B2</span>
-                                <div class="store-slot" id="B2"></div>
-                            </div>
-                            <div class="position" data-street="B" data-pos="3">
-                                <span class="position-label">B3</span>
+      <!-- Draggable items -->
+      <section class="places-panel">
+        <h2>Places</h2>
+        <div class="places-list" id="places-list">
+          <div class="place-chip" data-place="bakery">Bakery</div>
+          <div class="place-chip" data-place="stationery">Stationery Store</div>
+          <div class="place-chip" data-place="supermarket">Supermarket</div>
+          <div class="place-chip" data-place="convenience">Convenience Store</div>
+          <div class="place-chip" data-place="hamburger">Hamburger Store</div>
+          <div class="place-chip" data-place="hospital">Hospital</div>
+        </div>
+
+        <button id="check-btn" class="primary-btn">Check</button>
+        <button id="reset-btn" class="secondary-btn">Reset</button>
+
+        <div id="feedback" class="feedback"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>                                <span class="position-label">B3</span>
                                 <div class="store-slot" id="B3"></div>
                             </div>
                         </div>
