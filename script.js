@@ -1,72 +1,202 @@
-// Core data: correct mapping of places to zones
-// (you can change this to match your puzzle)
-const correctMapping = {
-  bakery: "bakery",
-  stationery: "stationery",
-  supermarket: "supermarket",
-  convenience: "convenience",
-  hamburger: "hamburger",
-  hospital: "hospital",
-};
+// Places are the same on both streets.
+const places = [
+  { id: "stationery", label: "Stationery Store", icon: "✏️" },
+  { id: "burger", label: "Hamburger Store", icon: "🍔" },
+  { id: "hospital", label: "Hospital", icon: "🏥" },
+  { id: "supermarket", label: "Supermarket", icon: "🛒" },
+  { id: "police", label: "Police Office", icon: "👮" },
+  { id: "school", label: "School", icon: "🏫" }
+];
 
-const streetEl = document.getElementById("street");
-const placesListEl = document.getElementById("places-list");
-const checkBtn = document.getElementById("check-btn");
-const resetBtn = document.getElementById("reset-btn");
-const feedbackEl = document.getElementById("feedback");
+// 10 levels: first ones are very simple, last ones need more reading/logic.
+const levels = [
+  {
+    target: { street: "A", placeId: "school" },
+    clues: [
+      "The place is on Street A.",
+      "Children go here to learn.",
+      "It has classrooms and a playground."
+    ]
+  },
+  {
+    target: { street: "B", placeId: "burger" },
+    clues: [
+      "The place is on Street B.",
+      "You can buy fast food here.",
+      "It is famous for hamburgers."
+    ]
+  },
+  {
+    target: { street: "A", placeId: "hospital" },
+    clues: [
+      "This place helps sick and hurt people.",
+      "Ambulances come here.",
+      "It is not on Street B."
+    ]
+  },
+  {
+    target: { street: "B", placeId: "stationery" },
+    clues: [
+      "You can buy pencils and notebooks here.",
+      "The place is on the same street as the supermarket.",
+      "It is not where you buy food or see a doctor."
+    ]
+  },
+  {
+    target: { street: "A", placeId: "police" },
+    clues: [
+      "This place helps keep the town safe.",
+      "If you lose something, you can report it here.",
+      "It is on a different street from the supermarket."
+    ]
+  },
+  {
+    target: { street: "B", placeId: "supermarket" },
+    clues: [
+      "People buy many kinds of food here.",
+      "It is on Street B.",
+      "It is next to the stationery store in this puzzle's story."
+    ]
+  },
+  {
+    target: { street: "A", placeId: "stationery" },
+    clues: [
+      "The place you are looking for is not on Street B.",
+      "It sells items that students often keep in their pencil cases.",
+      "Its name is 'stationery', not 'stationary' (same sound, different meaning)."
+    ]
+  },
+  {
+    target: { street: "B", placeId: "hospital" },
+    clues: [
+      "This place must be open 24 hours a day.",
+      "It needs doctors, nurses and many machines.",
+      "If the school on Street A has a big accident, people may be taken here on Street B."
+    ]
+  },
+  {
+    target: { street: "A", placeId: "supermarket" },
+    clues: [
+      "Think about money: this place usually has discounts and sales.",
+      "Unlike the hamburger store, you can buy ingredients to cook at home.",
+      "On this puzzle, it is on Street A, not Street B."
+    ]
+  },
+  {
+    target: { street: "B", placeId: "school" },
+    clues: [
+      "In this town there are two schools, one on each street.",
+      "The school you want is on the same street as the police office in this level's story.",
+      "The correct answer is not on Street A, and it is not a place where you mainly spend money."
+    ]
+  }
+];
 
-// Track current placement: zoneId -> placeKey
-// zoneId is the zone's data-place, placeKey is the chip's data-place
-const placements = {};
+let currentLevel = 0; // 0–9
+let lives = 3;
 
-// Drag state
-let dragState = {
-  active: false,
-  placeKey: null,
-  originalParent: null,
-  cloneEl: null,
-  offsetX: 0,
-  offsetY: 0,
-};
+const placeButtons = Array.from(document.querySelectorAll(".place"));
+const levelDisplay = document.getElementById("level-display");
+const livesDisplay = document.getElementById("lives-display");
+const cluesList = document.getElementById("clues-list");
+const messageDiv = document.getElementById("message");
+const nextLevelBtn = document.getElementById("next-level-btn");
+const restartBtn = document.getElementById("restart-btn");
 
-// Helper: get pointer coordinates from mouse or touch event
-function getPoint(e) {
-  if (e.touches && e.touches.length > 0) {
-    return {
-      x: e.touches[0].clientX,
-      y: e.touches[0].clientY,
-    };
+function mapPlacesToButtons() {
+  // First 3 buttons = Street A, last 3 = Street B.
+  placeButtons.forEach((btn, idx) => {
+    const place = places[idx % places.length];
+    const street = idx < 3 ? "A" : "B";
+    btn.dataset.street = street;
+    btn.dataset.placeId = place.id;
+    btn.innerHTML =
+      `<span class="icon">${place.icon}</span>` +
+      `<span class="label">${place.label}</span>`;
+  });
+}
+
+function loadLevel() {
+  const levelNumber = currentLevel + 1;
+  const level = levels[currentLevel];
+
+  levelDisplay.textContent = levelNumber.toString();
+  livesDisplay.textContent = lives.toString();
+
+  placeButtons.forEach(btn => {
+    btn.classList.remove("correct", "wrong");
+    btn.disabled = false;
+  });
+
+  cluesList.innerHTML = "";
+  level.clues.forEach(text => {
+    const li = document.createElement("li");
+    li.textContent = text;
+    cluesList.appendChild(li);
+  });
+
+  messageDiv.textContent = "Pick the place that matches all the clues.";
+  nextLevelBtn.classList.add("hidden");
+  restartBtn.classList.add("hidden");
+}
+
+function handlePlaceClick(event) {
+  const btn = event.currentTarget;
+  const chosenStreet = btn.dataset.street;
+  const chosenPlaceId = btn.dataset.placeId;
+  const level = levels[currentLevel];
+
+  placeButtons.forEach(b => b.classList.remove("correct", "wrong"));
+
+  if (chosenStreet === level.target.street && chosenPlaceId === level.target.placeId) {
+    btn.classList.add("correct");
+    messageDiv.textContent = "Correct!";
+    placeButtons.forEach(b => (b.disabled = true));
+
+    if (currentLevel === levels.length - 1) {
+      messageDiv.textContent = "You finished all 10 levels! Great job.";
+      restartBtn.classList.remove("hidden");
+    } else {
+      nextLevelBtn.classList.remove("hidden");
+    }
   } else {
-    return {
-      x: e.clientX,
-      y: e.clientY,
-    };
+    btn.classList.add("wrong");
+    lives -= 1;
+    livesDisplay.textContent = lives.toString();
+
+    if (lives <= 0) {
+      messageDiv.textContent = "No lives left. You must start again from Level 1.";
+      placeButtons.forEach(b => (b.disabled = true));
+      restartBtn.classList.remove("hidden");
+    } else {
+      messageDiv.textContent =
+        "That does not fit all the clues. Try again. Lives left: " + lives;
+    }
   }
 }
 
-// Start dragging a chip
-function startDrag(placeEl, e) {
-  e.preventDefault();
+function goToNextLevel() {
+  if (currentLevel < levels.length - 1) {
+    currentLevel += 1;
+    loadLevel();
+  }
+}
 
-  const rect = placeEl.getBoundingClientRect();
-  const point = getPoint(e);
+function restartGame() {
+  currentLevel = 0;
+  lives = 3;
+  loadLevel();
+}
 
-  dragState.active = true;
-  dragState.placeKey = placeEl.dataset.place;
-  dragState.originalParent = placeEl.parentElement;
+placeButtons.forEach(btn => {
+  btn.addEventListener("click", handlePlaceClick);
+});
 
-  // Create floating clone
-  const clone = placeEl.cloneNode(true);
-  clone.classList.add("dragging");
-  clone.style.position = "fixed";
-  clone.style.left = rect.left + "px";
-  clone.style.top = rect.top + "px";
-  clone.style.zIndex = 1000;
-  clone.style.pointerEvents = "none";
-  document.body.appendChild(clone);
+nextLevelBtn.addEventListener("click", goToNextLevel);
+restartBtn.addEventListener("click", restartGame);
 
-  dragState.cloneEl = clone;
-  dragState.offsetX = point.x - rect.left;
+mapPlacesToButtons();
+loadLevel();
   dragState.offsetY = point.y - rect.top;
 
   // (Optionally) hide original; or we can keep it.
