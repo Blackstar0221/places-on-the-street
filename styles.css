@@ -37,12 +37,14 @@ h1 {
   font-weight: 600;
 }
 
+/* MAIN LAYOUT */
 main {
   display: grid;
   grid-template-columns: 2fr 1.2fr;
   gap: 16px;
 }
 
+/* Stack on small screens */
 @media (max-width: 720px) {
   main {
     grid-template-columns: 1fr;
@@ -62,9 +64,137 @@ main {
   margin-bottom: 8px;
 }
 
+/* Row of places */
 .places-row {
   display: flex;
   gap: 8px;
+}
+
+/* PERFECT SQUARE, TAP‑FRIENDLY BUTTONS */
+.place {
+  flex: 1;
+  border: 2px solid #88a;
+  border-radius: 10px;
+  background: #f9fbff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transition: background 0.15s, transform 0.1s, box-shadow 0.1s;
+
+  /* make it a square */
+  aspect-ratio: 1 / 1;
+  min-height: 90px; /* fallback for browsers without aspect-ratio */
+  padding: 10px;
+}
+
+.place span.icon {
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+
+.place span.label {
+  font-size: 0.9rem;
+}
+
+.place:hover {
+  background: #e6f0ff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.12);
+}
+
+.place.correct {
+  background: #c8f7c5;
+  border-color: #37a047;
+}
+
+.place.wrong {
+  background: #ffd6d6;
+  border-color: #d43f3a;
+}
+
+#info-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+/* Make clues bigger on phones */
+#clues-list {
+  padding-left: 20px;
+}
+
+#clues-list li {
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+#message {
+  margin-top: 10px;
+  min-height: 24px;
+  font-weight: 600;
+}
+
+/* Buttons */
+button#next-level-btn,
+button#restart-btn {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #3b82f6;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button#restart-btn {
+  background: #d43f3a;
+}
+
+button.hidden {
+  display: none;
+}
+
+footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #789;
+}
+
+/* EXTRA mobile tweaks */
+@media (max-width: 600px) {
+  #game-container {
+    padding: 10px;
+  }
+
+  .places-row {
+    gap: 6px;
+  }
+
+  .place {
+    min-height: 80px;
+    border-radius: 8px;
+    padding: 6px;
+  }
+
+  .place span.icon {
+    font-size: 1.6rem;
+  }
+
+  .place span.label {
+    font-size: 0.8rem;
+  }
+
+  #status-bar {
+    gap: 12px;
+    font-size: 0.9rem;
+  }
+}
 }
 
 .place {
