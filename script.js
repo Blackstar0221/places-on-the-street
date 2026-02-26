@@ -11,6 +11,7 @@ const levelNumberEl = document.getElementById("level-number");
 const roundNumberEl = document.getElementById("round-number");
 const nextLevelBtn = document.getElementById("next-level-btn");
 const restartBtn = document.getElementById("restart-btn");
+const moreHintBtn = document.getElementById("more-hint-btn");
 
 // State
 let currentLevel = 1;
@@ -18,6 +19,7 @@ let currentRound = 1;
 let heartsLeft = MAX_HEARTS;
 let oddCardIndex = 0;
 let hasGuessedThisRound = false;
+let currentHintIndex = 0; // which hint number in this round
 
 // Vocabulary for hints
 const attributes = [
@@ -130,12 +132,12 @@ function generateCardStyles(level) {
 }
 
 // Generate a hint text for this level and this layout
-function generateHint(level) {
+// hintNumber: 0 = first hint, 1 = second hint, 2+ = stronger hints
+function generateHint(level, hintNumber = 0) {
   const { hintComplexity } = getLevelDifficulty(level);
 
   const cardLabel = String.fromCharCode(65 + oddCardIndex); // 'A'..'F'
 
-  const directHint = `The odd card is labeled ${cardLabel}.`; // for low levels
   const attributeHint = `The odd card is ${attributes[randInt(
     0,
     attributes.length - 1
@@ -144,19 +146,27 @@ function generateHint(level) {
     "The odd card is " +
     logicalRelations[randInt(0, logicalRelations.length - 1)] +
     ".";
+  const directHint = `The odd card is labeled ${cardLabel}.`;
 
   if (level <= 2) {
-    // Very generous
-    return directHint + " " + attributeHint;
+    if (hintNumber === 0) return attributeHint;
+    if (hintNumber === 1) return attributeHint + " " + relationHint;
+    return directHint; // eventually just tell them
   } else if (level <= 5) {
-    return attributeHint;
+    if (hintNumber === 0) return attributeHint;
+    if (hintNumber === 1) return relationHint;
+    return attributeHint + " " + relationHint;
   } else if (level <= 8) {
+    if (hintNumber === 0) return relationHint;
+    if (hintNumber === 1) return attributeHint;
     return `${attributeHint} Also, it is ${logicalRelations[
       randInt(0, logicalRelations.length - 1)
     ]}.`;
   } else {
-    // Harder: more vague
-    return relationHint;
+    // Harder levels start more vague
+    if (hintNumber === 0) return relationHint;
+    if (hintNumber === 1) return attributeHint;
+    return `${relationHint} Also, pay attention to how its size or angle feels different.`;
   }
 }
 
@@ -201,8 +211,11 @@ function renderCards() {
   }
 
   hasGuessedThisRound = false;
-  hintBox.textContent =
-    "Click a card to suspect it. The hint will appear after you guess.";
+  currentHintIndex = 0;
+
+  // Show a hint at the start of the round
+  const firstHint = generateHint(currentLevel, currentHintIndex);
+  hintBox.textContent = "Hint 1: " + firstHint;
 }
 
 // Handle card click (guess)
@@ -247,9 +260,14 @@ function onCardClick(e) {
     renderHearts();
 
     const oddLabel = String.fromCharCode(65 + oddCardIndex);
+
+    // Give an extra hint after a wrong guess
+    currentHintIndex++;
+    const extraHint = generateHint(currentLevel, currentHintIndex);
+
     hintBox.textContent =
-      generateHint(currentLevel) +
-      ` You guessed ${String.fromCharCode(
+      `Hint after your guess: ${extraHint} ` +
+      `You guessed ${String.fromCharCode(
         65 + index
       )}, but the odd card was ${oddLabel}.`;
 
@@ -309,6 +327,13 @@ nextLevelBtn.addEventListener("click", () => {
     nextLevelBtn.classList.add("hidden");
     renderCards();
   }
+});
+
+// More hint button
+moreHintBtn.addEventListener("click", () => {
+  currentHintIndex++;
+  const hintText = generateHint(currentLevel, currentHintIndex);
+  hintBox.textContent = `Hint ${currentHintIndex + 1}: ${hintText}`;
 });
 
 // Restart game
