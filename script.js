@@ -1,17 +1,19 @@
 // Game configuration
 const MAX_LEVEL = 10;
-const MAX_ROUNDS = 5;
+const MAX_ROUNDS = 3; // changed to 3 rounds per level
 const MAX_HEARTS = 5;
 
 // Elements
 const cardsGrid = document.getElementById("cards-grid");
 const hintBox = document.getElementById("hint-box");
+const resultBox = document.getElementById("result-box");
 const heartsContainer = document.getElementById("hearts");
 const levelNumberEl = document.getElementById("level-number");
 const roundNumberEl = document.getElementById("round-number");
 const nextLevelBtn = document.getElementById("next-level-btn");
 const restartBtn = document.getElementById("restart-btn");
 const moreHintBtn = document.getElementById("more-hint-btn");
+const resultBtn = document.getElementById("result-btn");
 
 // State
 let currentLevel = 1;
@@ -20,6 +22,10 @@ let heartsLeft = MAX_HEARTS;
 let oddCardIndex = 0;
 let hasGuessedThisRound = false;
 let currentHintIndex = -1; // -1 = no hint shown this round yet
+
+// Result state
+let resultParts = []; // array of strings for step-by-step result
+let currentResultIndex = -1; // -1 = nothing shown yet
 
 // Vocabulary for hints
 const attributes = [
@@ -170,6 +176,51 @@ function generateHint(level, hintNumber = 0) {
   }
 }
 
+// Prepare result parts for step‑by‑step reveal
+function buildResultParts({ correct, guessedIndex }) {
+  const guessedLabel = String.fromCharCode(65 + guessedIndex);
+  const oddLabel = String.fromCharCode(65 + oddCardIndex);
+  const parts = [];
+
+  if (correct) {
+    parts.push(`You chose ${guessedLabel}. That was correct!`);
+    parts.push(`Card ${oddLabel} really was the odd one out.`);
+    parts.push("Nice job. Press Next Level when you're ready.");
+  } else {
+    parts.push(`You chose ${guessedLabel}. That was not the odd one.`);
+    parts.push(`The odd card was ${oddLabel}.`);
+    parts.push(
+      "Look carefully at size, rotation, and position next time."
+    );
+  }
+
+  return parts;
+}
+
+// Show the next chunk of result text
+function showNextResultPart() {
+  if (!resultParts || resultParts.length === 0) return;
+
+  if (currentResultIndex < 0) {
+    currentResultIndex = 0;
+  } else if (currentResultIndex < resultParts.length - 1) {
+    currentResultIndex++;
+  } else {
+    // Already at the last part; nothing more to show
+    return;
+  }
+
+  const joined = resultParts.slice(0, currentResultIndex + 1).join(" ");
+  resultBox.textContent = joined;
+
+  // Change button text appropriately
+  if (currentResultIndex >= resultParts.length - 1) {
+    resultBtn.textContent = "Result Complete";
+  } else {
+    resultBtn.textContent = "Next Result Detail";
+  }
+}
+
 // Render the six cards
 function renderCards() {
   cardsGrid.innerHTML = "";
@@ -212,11 +263,17 @@ function renderCards() {
 
   hasGuessedThisRound = false;
   currentHintIndex = -1; // no hint yet
+  resultParts = [];
+  currentResultIndex = -1;
+  resultBtn.classList.add("hidden");
 
-  // Reset hint box + button text
+  // Reset hint & result boxes
   hintBox.textContent =
     'Press "Show Hint" to get a clue for this round.';
   moreHintBtn.textContent = "Show Hint";
+
+  resultBox.textContent =
+    'Make a guess to unlock the result, then press "Show Result".';
 }
 
 // Handle card click (guess)
@@ -233,12 +290,18 @@ function onCardClick(e) {
     .querySelectorAll(".card")
     .forEach((c) => c.classList.add("show-badge"));
 
-  if (index === oddCardIndex) {
+  const correct = index === oddCardIndex;
+
+  if (correct) {
     // Correct guess
     cardEl.classList.add("correct");
-    hintBox.textContent = `Correct! You found the odd one out: card ${String.fromCharCode(
-      65 + index
-    )}.`;
+
+    // Prepare result parts and show first chunk
+    resultParts = buildResultParts({ correct: true, guessedIndex: index });
+    currentResultIndex = -1;
+    resultBtn.classList.remove("hidden");
+    resultBtn.textContent = "Show Result";
+    showNextResultPart();
 
     // Highlight other cards as normal
     document.querySelectorAll(".card").forEach((c) => {
@@ -246,6 +309,11 @@ function onCardClick(e) {
         c.classList.add("suspected"); // just to show outline
       }
     });
+
+    // Also give a short line in hint box
+    hintBox.textContent = `Nice! Card ${String.fromCharCode(
+      65 + index
+    )} was the odd one.`;
 
     // Go to next level or finish
     if (currentLevel < MAX_LEVEL) {
@@ -260,8 +328,6 @@ function onCardClick(e) {
     heartsLeft--;
     renderHearts();
 
-    const oddLabel = String.fromCharCode(65 + oddCardIndex);
-
     // Give an extra hint after a wrong guess
     if (currentHintIndex < 0) {
       currentHintIndex = 0;
@@ -270,14 +336,14 @@ function onCardClick(e) {
     }
     const extraHint = generateHint(currentLevel, currentHintIndex);
 
-    hintBox.textContent =
-      `Hint after your guess: ${extraHint} ` +
-      `You guessed ${String.fromCharCode(
-        65 + index
-      )}, but the odd card was ${oddLabel}.`;
+    hintBox.textContent = `Hint after your guess: ${extraHint}`;
 
-    // Make sure button label matches the "we can keep going" idea
-    moreHintBtn.textContent = "Next Hint";
+    // Build step-by-step result
+    resultParts = buildResultParts({ correct: false, guessedIndex: index });
+    currentResultIndex = -1;
+    resultBtn.classList.remove("hidden");
+    resultBtn.textContent = "Show Result";
+    showNextResultPart();
 
     // Mark the correct one too
     const correctCard = document.querySelector(
@@ -352,6 +418,11 @@ moreHintBtn.addEventListener("click", () => {
   moreHintBtn.textContent = "Next Hint";
 });
 
+// Result button: step-by-step reveal
+resultBtn.addEventListener("click", () => {
+  showNextResultPart();
+});
+
 // Restart game
 restartBtn.addEventListener("click", () => {
   currentLevel = 1;
@@ -359,11 +430,14 @@ restartBtn.addEventListener("click", () => {
   heartsLeft = MAX_HEARTS;
   nextLevelBtn.classList.add("hidden");
   restartBtn.classList.add("hidden");
+  resultBtn.classList.add("hidden");
   renderHearts();
   updateLevelRoundDisplay();
   renderCards();
   hintBox.textContent =
     "New game started. 6 cards, 1 is odd. Can you clear all 10 levels?";
+  resultBox.textContent =
+    'Make a guess to unlock the result, then press "Show Result".';
 });
 
 // Initialize
