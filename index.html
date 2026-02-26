@@ -2,38 +2,59 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Places on the Street</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Places on the Street</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app">
-    <header class="top-bar">
+  <div id="game-container">
+    <header>
       <h1>Places on the Street</h1>
-      <p class="subtitle">
-        Drag each place to the correct spot on the street. Works on computer and mobile.
-      </p>
+      <p class="subtitle">Use the clues to find the right place on Street A or Street B.</p>
+      <div id="status-bar">
+        <div>Level: <span id="level-display">1</span>/10</div>
+        <div>Lives: <span id="lives-display">3</span></div>
+      </div>
     </header>
 
-    <main class="main-layout">
-      <!-- Drop zone (street map / layout) -->
-      <section class="street" id="street">
-        <div class="drop-zone" data-place="bakery">Bakery</div>
-        <div class="drop-zone" data-place="stationery">Stationery Store</div>
-        <div class="drop-zone" data-place="supermarket">Supermarket</div>
-        <div class="drop-zone" data-place="convenience">Convenience Store</div>
-        <div class="drop-zone" data-place="hamburger">Hamburger Store</div>
-        <div class="drop-zone" data-place="hospital">Hospital</div>
+    <main>
+      <section id="streets-section">
+        <div class="street" id="street-a">
+          <h2>Street A</h2>
+          <div class="places-row">
+            <button class="place" data-street="A" data-index="0"></button>
+            <button class="place" data-street="A" data-index="1"></button>
+            <button class="place" data-street="A" data-index="2"></button>
+          </div>
+        </div>
+
+        <div class="street" id="street-b">
+          <h2>Street B</h2>
+          <div class="places-row">
+            <button class="place" data-street="B" data-index="3"></button>
+            <button class="place" data-street="B" data-index="4"></button>
+            <button class="place" data-street="B" data-index="5"></button>
+          </div>
+        </div>
       </section>
 
-      <!-- Draggable items -->
-      <section class="places-panel">
-        <h2>Places</h2>
-        <div class="places-list" id="places-list">
-          <div class="place-chip" data-place="bakery">Bakery</div>
-          <div class="place-chip" data-place="stationery">Stationery Store</div>
-          <div class="place-chip" data-place="supermarket">Supermarket</div>
-          <div class="place-chip" data-place="convenience">Convenience Store</div>
+      <section id="info-section">
+        <h2>Clues</h2>
+        <ul id="clues-list"></ul>
+        <div id="message"></div>
+        <button id="next-level-btn" class="hidden">Next Level</button>
+        <button id="restart-btn" class="hidden">Restart from Level 1</button>
+      </section>
+    </main>
+
+    <footer>
+      <p>Practice logic, reading, and math skills.</p>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
           <div class="place-chip" data-place="hamburger">Hamburger Store</div>
           <div class="place-chip" data-place="hospital">Hospital</div>
         </div>
