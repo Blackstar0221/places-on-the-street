@@ -1,40 +1,193 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-:root {
-    --primary-color: #2c3e50;
-    --secondary-color: #3498db;
-    --success-color: #27ae60;
-    --danger-color: #e74c3c;
-    --warning-color: #f39c12;
-    --light-bg: #ecf0f1;
-    --dark-text: #2c3e50;
-    --border-color: #bdc3c7;
-    --transition: all 0.3s ease;
+html,
+body {
+  height: 100%;
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
-    color: var(--dark-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #0f172a;
+  color: #f1f5f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
+.app {
+  max-width: 1000px;
+  width: 100%;
+  padding: 20px 16px 32px;
 }
 
-/* Header */
-header {
+.top-bar h1 {
+  font-size: 1.7rem;
+  margin-bottom: 4px;
+  text-align: center;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.8;
+  margin-bottom: 16px;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.street {
+  background: #020617;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #1e293b;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.drop-zone {
+  border-radius: 10px;
+  border: 2px dashed #475569;
+  min-height: 80px;
+  padding: 8px;
+  font-size: 0.9rem;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #cbd5f5;
+  position: relative;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.drop-zone.highlight {
+  border-color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.07);
+}
+
+.drop-zone.correct {
+  border-color: #22c55e;
+  background-color: rgba(34, 197, 94, 0.1);
+}
+
+.drop-zone.wrong {
+  border-color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.08);
+}
+
+.drop-zone .place-chip {
+  margin: 0;
+}
+
+/* Places panel */
+
+.places-panel {
+  background: #020617;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #1e293b;
+}
+
+.places-panel h2 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.places-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.place-chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #1e293b;
+  color: #e5e7eb;
+  font-size: 0.85rem;
+  cursor: grab;
+  user-select: none;
+  touch-action: none; /* important for mobile drag */
+  border: 1px solid #334155;
+  transition: background-color 0.1s ease, transform 0.1s ease,
+    box-shadow 0.1s ease;
+}
+
+.place-chip:active {
+  cursor: grabbing;
+}
+
+.place-chip.dragging {
+  opacity: 0.9;
+  transform: scale(1.05);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Buttons */
+
+.primary-btn,
+.secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-right: 6px;
+  margin-bottom: 8px;
+}
+
+.primary-btn {
+  background: #22c55e;
+  color: #022c22;
+  font-weight: 600;
+}
+
+.primary-btn:hover {
+  background: #16a34a;
+}
+
+.secondary-btn {
+  background: transparent;
+  color: #e5e7eb;
+  border: 1px solid #4b5563;
+}
+
+.secondary-btn:hover {
+  background: #111827;
+}
+
+.feedback {
+  min-height: 36px;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .street {
+    margin-bottom: 12px;
+  }
+}header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
     padding: 30px;
