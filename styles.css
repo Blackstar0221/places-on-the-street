@@ -1,0 +1,215 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #000;
+  color: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-container {
+  max-width: 900px;
+  width: 100%;
+  padding: 24px 16px 32px;
+}
+
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+  color: #f0f0f0;
+}
+
+.level-display,
+.round-display {
+  opacity: 0.9;
+}
+
+.hearts {
+  display: flex;
+  gap: 4px;
+}
+
+.heart {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #f87171;
+  background-color: transparent;
+}
+
+.heart.filled {
+  background-color: #f87171;
+}
+
+.title {
+  text-align: center;
+  font-size: 1.8rem;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.95rem;
+  opacity: 0.8;
+  margin-bottom: 24px;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background-color: #facc15; /* plain yellow */
+  border-radius: 10px;
+  height: 120px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.15s ease, box-shadow 0.15s ease,
+    outline-color 0.15s ease, opacity 0.2s ease;
+  outline: 2px solid transparent;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.5);
+}
+
+.card.suspected {
+  outline-color: #38bdf8; /* cyan */
+  box-shadow: 0 0 0 2px #38bdf8, 0 10px 20px rgba(0, 0, 0, 0.8);
+}
+
+.card.correct {
+  outline-color: #4ade80;
+  box-shadow: 0 0 0 2px #4ade80, 0 10px 20px rgba(0, 0, 0, 0.8);
+}
+
+.card.wrong {
+  outline-color: #f97373;
+  box-shadow: 0 0 0 2px #f97373, 0 10px 20px rgba(0, 0, 0, 0.8);
+  opacity: 0.6;
+}
+
+.card-label {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1f2937;
+}
+
+.card-badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1f2937;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 2px 6px;
+  border-radius: 999px;
+  display: none;
+}
+
+/* Show the badge only after guessing */
+.card.show-badge .card-badge {
+  display: inline-block;
+}
+
+/* Info panel */
+
+.info-panel {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.hint-box {
+  min-height: 56px;
+  border-radius: 8px;
+  border: 1px solid #374151;
+  background: linear-gradient(to right, #020617, #020617);
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #e5e7eb;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+/* Buttons */
+
+.primary-btn,
+.secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin: 4px;
+}
+
+.primary-btn {
+  background: #22c55e;
+  color: #022c22;
+  font-weight: 600;
+}
+
+.primary-btn:hover {
+  background: #16a34a;
+}
+
+.secondary-btn {
+  background: transparent;
+  color: #e5e7eb;
+  border: 1px solid #4b5563;
+}
+
+.secondary-btn:hover {
+  background: #111827;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Responsive */
+
+@media (max-width: 600px) {
+  .cards-grid {
+    gap: 12px;
+  }
+
+  .card {
+    height: 100px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}
