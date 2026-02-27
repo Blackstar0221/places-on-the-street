@@ -1,71 +1,18 @@
-// Places are the same on both streets.
-const places = [
-  { id: "stationery", label: "Stationery Store", icon: "✏️" },
-  { id: "burger", label: "Hamburger Store", icon: "🍔" },
-  { id: "hospital", label: "Hospital", icon: "🏥" },
-  { id: "supermarket", label: "Supermarket", icon: "🛒" },
-  { id: "police", label: "Police Office", icon: "👮" },
-  { id: "school", label: "School", icon: "🏫" }
-];
+// Simple "song" / level
+// time = seconds from start, lane = 0 (A), 1 (S), 2 (D)
+const LEVEL = {
+  bpm: 120, // not used directly for logic, just info
+  notes: [
+    { time: 1.0, lane: 1 },
+    { time: 1.5, lane: 1 },
+    { time: 2.0, lane: 1 },
+    { time: 2.5, lane: 1 },
 
-// 10 levels: first ones are very simple, last ones need more reading/logic.
-const levels = [
-  {
-    target: { street: "A", placeId: "school" },
-    clues: [
-      "The place is on Street A.",
-      "Children go here to learn.",
-      "It has classrooms and a playground."
-    ]
-  },
-  {
-    target: { street: "B", placeId: "burger" },
-    clues: [
-      "The place is on Street B.",
-      "You can buy fast food here.",
-      "It is famous for hamburgers."
-    ]
-  },
-  {
-    target: { street: "A", placeId: "hospital" },
-    clues: [
-      "This place helps sick and hurt people.",
-      "Ambulances come here.",
-      "It is not on Street B."
-    ]
-  },
-  {
-    target: { street: "B", placeId: "stationery" },
-    clues: [
-      "You can buy pencils and notebooks here.",
-      "The place is on the same street as the supermarket.",
-      "It is not where you buy food or see a doctor."
-    ]
-  },
-  {
-    target: { street: "A", placeId: "police" },
-    clues: [
-      "This place helps keep the town safe.",
-      "If you lose something, you can report it here.",
-      "It is on a different street from the supermarket."
-    ]
-  },
-  {
-    target: { street: "B", placeId: "supermarket" },
-    clues: [
-      "People buy many kinds of food here.",
-      "It is on Street B.",
-      "It is next to the stationery store in this puzzle's story."
-    ]
-  },
-  {
-    target: { street: "A", placeId: "stationery" },
-    clues: [
-      "The place you are looking for is not on Street B.",
-      "It sells items that students often keep in their pencil cases.",
-      "Its name is 'stationery', not 'stationary' (same sound, different meaning)."
-    ]
-  },
+    { time: 3.5, lane: 0 },
+    { time: 4.0, lane: 1 },
+    { time: 4.5, lane: 2 },
+
+    { time:  },
   {
     target: { street: "B", placeId: "hospital" },
     clues: [
