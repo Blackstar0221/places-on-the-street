@@ -2,18 +2,33 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Beat Tap – Rhythm Challenge</title>
+  <title>Beat Tap – Piano Tiles Style</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="game-container">
     <header class="top-bar">
-      <div class="title">Beat Tap</div>
+      <div class="title-area">
+        <div class="logo-dot"></div>
+        <div class="title-text">
+          <div class="title">Beat Tap</div>
+          <div class="subtitle">Mini Piano Tiles Challenge</div>
+        </div>
+      </div>
       <div class="stats">
-        <div>Score: <span id="score">0</span></div>
-        <div>Combo: <span id="combo">0</span></div>
-        <div>Best: <span id="best-combo">0</span></div>
+        <div class="stat-item">
+          <span class="stat-label">Score</span>
+          <span id="score" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Combo</span>
+          <span id="combo" class="stat-value">0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Best</span>
+          <span id="best-combo" class="stat-value">0</span>
+        </div>
       </div>
     </header>
 
@@ -21,13 +36,13 @@
       <section class="lanes-area">
         <div class="lanes">
           <div class="lane" data-lane="0">
-            <div class="lane-label">A</div>
+            <div class="lane-glow"></div>
           </div>
           <div class="lane" data-lane="1">
-            <div class="lane-label">S</div>
+            <div class="lane-glow"></div>
           </div>
           <div class="lane" data-lane="2">
-            <div class="lane-label">D</div>
+            <div class="lane-glow"></div>
           </div>
           <div class="hit-line"></div>
         </div>
@@ -35,6 +50,40 @@
         <!-- Mobile / touch controls -->
         <div class="touch-controls">
           <button class="touch-key" data-lane="0">A</button>
+          <button class="touch-key" data-lane="1">S</button>
+          <button class="touch-key" data-lane="2">D</button>
+        </div>
+      </section>
+
+      <section class="side-panel">
+        <div class="tip-card">
+          <p class="instructions">
+            Like piano tiles: tap when the tiles reach the glowing line.
+          </p>
+          <p class="instructions">
+            <b>Computer:</b> use <b>A / S / D</b><br />
+            <b>Phone / tablet:</b> tap the big buttons below.
+          </p>
+          <p class="instructions small">
+            Timing:<br />
+            <span class="perfect-text">Perfect</span>: ±0.12s,
+            <span class="good-text">Good</span>: ±0.20s
+          </p>
+        </div>
+
+        <div class="button-row">
+          <button id="start-btn" class="primary-btn">Start</button>
+          <button id="restart-btn" class="secondary-btn" disabled>Restart</button>
+        </div>
+
+        <div id="hit-feedback" class="hit-feedback">Ready</div>
+      </section>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>          <button class="touch-key" data-lane="0">A</button>
           <button class="touch-key" data-lane="1">S</button>
           <button class="touch-key" data-lane="2">D</button>
         </div>
