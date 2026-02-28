@@ -12,60 +12,334 @@ const LEVEL = {
     { time: 4.0, lane: 1 },
     { time: 4.5, lane: 2 },
 
-    { time:  },
-  {
-    target: { street: "B", placeId: "hospital" },
-    clues: [
-      "This place must be open 24 hours a day.",
-      "It needs doctors, nurses and many machines.",
-      "If the school on Street A has a big accident, people may be taken here on Street B."
-    ]
-  },
-  {
-    target: { street: "A", placeId: "supermarket" },
-    clues: [
-      "Think about money: this place usually has discounts and sales.",
-      "Unlike the hamburger store, you can buy ingredients to cook at home.",
-      "On this puzzle, it is on Street A, not Street B."
-    ]
-  },
-  {
-    target: { street: "B", placeId: "school" },
-    clues: [
-      "In this town there are two schools, one on each street.",
-      "The school you want is on the same street as the police office in this level's story.",
-      "The correct answer is not on Street A, and it is not a place where you mainly spend money."
-    ]
-  }
-];
+    { time: 5.5, lane: 0 },
+    { time: 6.0, lane: 0 },
+    { time: 6.5, lane: 2 },
+    { time: 7.0, lane: 2 },
 
-let currentLevel = 0; // 0–9
-let lives = 3;
+    { time: 8.0, lane: 1 },
+    { time: 8.5, lane: 0 },
+    { time: 9.0, lane: 2 },
+    { time: 9.5, lane: 1 },
 
-const placeButtons = Array.from(document.querySelectorAll(".place"));
-const levelDisplay = document.getElementById("level-display");
-const livesDisplay = document.getElementById("lives-display");
-const cluesList = document.getElementById("clues-list");
-const messageDiv = document.getElementById("message");
-const nextLevelBtn = document.getElementById("next-level-btn");
+    { time: 10.5, lane: 0 },
+    { time: 11.0, lane: 1 },
+    { time: 11.5, lane: 2 },
+    { time: 12.0, lane: 1 },
+  ],
+};
+
+const PERFECT_WINDOW = 0.12; // seconds
+const GOOD_WINDOW = 0.2; // seconds
+// Time before the hit time when we spawn the note (so it can fall)
+const NOTE_TRAVEL_TIME = 1.2; // seconds from spawn to hit line
+
+// Elements
+const laneEls = Array.from(document.querySelectorAll(".lane"));
+const scoreEl = document.getElementById("score");
+const comboEl = document.getElementById("combo");
+const bestComboEl = document.getElementById("best-combo");
+const startBtn = document.getElementById("start-btn");
 const restartBtn = document.getElementById("restart-btn");
+const hitFeedbackEl = document.getElementById("hit-feedback");
 
-function mapPlacesToButtons() {
-  // First 3 buttons = Street A, last 3 = Street B.
-  placeButtons.forEach((btn, idx) => {
-    const place = places[idx % places.length];
-    const street = idx < 3 ? "A" : "B";
-    btn.dataset.street = street;
-    btn.dataset.placeId = place.id;
-    btn.innerHTML =
-      `<span class="icon">${place.icon}</span>` +
-      `<span class="label">${place.label}</span>`;
+// Keys mapping
+const KEY_TO_LANE = {
+  a: 0,
+  s: 1,
+  d: 2,
+};
+
+// Game state
+let gameStarted = false;
+let gameFinished = false;
+let startTime = null;
+let animationId = null;
+
+let activeNotes = []; // { lane, time, hit: false, judged: false, el }
+let nextNoteIndex = 0;
+
+let score = 0;
+let combo = 0;
+let bestCombo = 0;
+
+// Utility to get current time in seconds since start
+function getCurrentTime() {
+  if (startTime === null) return 0;
+  return (performance.now() - startTime) / 1000;
+}
+
+// Create a DOM note element in a lane
+function spawnNote(noteData) {
+  const laneEl = laneEls[noteData.lane];
+  const noteEl = document.createElement("div");
+  noteEl.classList.add("note");
+  // Initially at top
+  const laneHeight = laneEl.clientHeight || 1;
+  noteEl.style.top = "0px";
+
+  laneEl.appendChild(noteEl);
+
+  noteData.el = noteEl;
+  activeNotes.push(noteData);
+}
+
+// Update note positions and handle auto-miss
+function updateNotes(currentTime) {
+  const hitLineRatio = 0.8; // where the hit line is inside lane (0 = top, 1 = bottom)
+  const laneHeight = laneEls[0].clientHeight || 1;
+  const hitLineY = laneHeight * hitLineRatio;
+
+  activeNotes.forEach((note) => {
+    const t = currentTime;
+    const travelStartTime = note.time - NOTE_TRAVEL_TIME;
+    const travelEndTime = note.time + GOOD_WINDOW; // after this, it's a miss anyway
+
+    // If we're before spawn time, keep it hidden at top
+    if (t < travelStartTime) {
+      note.el.style.top = "0px";
+      return;
+    }
+
+    // Progress from 0 to 1 between travelStartTime and note.time
+    const progress = Math.min(
+      1,
+      Math.max(0, (t - travelStartTime) / NOTE_TRAVEL_TIME)
+    );
+
+    const y = hitLineY * progress;
+    note.el.style.top = `${y}px`;
+
+    // Auto-miss if we've passed the Good window without being judged
+    if (!note.judged && t > note.time + GOOD_WINDOW) {
+      judgeNote(note, "miss");
+    }
+  });
+
+  // Clean up notes that are fully off-screen / judged
+  activeNotes = activeNotes.filter((note) => {
+    if (note.judged && note.el) {
+      // Remove the element if it's still in DOM
+      if (note.el.parentElement) {
+        note.el.parentElement.removeChild(note.el);
+      }
+      return false;
+    }
+    return true;
   });
 }
 
-function loadLevel() {
-  const levelNumber = currentLevel + 1;
-  const level = levels[currentLevel];
+// Try judging a note on a lane when a key is pressed
+function handleHit(lane) {
+  if (!gameStarted || gameFinished) return;
+
+  flashLane(lane);
+
+  const t = getCurrentTime();
+
+  // Find the best candidate note in this lane that is not yet judged
+  // and close to time t.
+  let candidate = null;
+  let candidateDelta = Infinity;
+
+  for (const note of activeNotes) {
+    if (note.lane !== lane || note.judged) continue;
+    const delta = Math.abs(note.time - t);
+    if (delta < candidateDelta) {
+      candidateDelta = delta;
+      candidate = note;
+    }
+  }
+
+  if (!candidate) {
+    // No note to hit in this lane
+    showHitFeedback("Miss", "miss");
+    resetComboOnMiss();
+    return;
+  }
+
+  if (candidateDelta <= PERFECT_WINDOW) {
+    judgeNote(candidate, "perfect");
+  } else if (candidateDelta <= GOOD_WINDOW) {
+    judgeNote(candidate, "good");
+  } else {
+    judgeNote(candidate, "miss");
+  }
+}
+
+// Judge a note as perfect/good/miss
+function judgeNote(note, kind) {
+  if (note.judged) return;
+  note.judged = true;
+
+  if (kind === "perfect") {
+    score += 2;
+    combo += 1;
+    bestCombo = Math.max(bestCombo, combo);
+    showHitFeedback("Perfect", "perfect");
+  } else if (kind === "good") {
+    score += 1;
+    combo += 1;
+    bestCombo = Math.max(bestCombo, combo);
+    showHitFeedback("Good", "good");
+  } else {
+    resetComboOnMiss();
+    showHitFeedback("Miss", "miss");
+  }
+
+  updateScoreUI();
+}
+
+// UI updates
+
+function updateScoreUI() {
+  scoreEl.textContent = score.toString();
+  comboEl.textContent = combo.toString();
+  bestComboEl.textContent = bestCombo.toString();
+}
+
+function showHitFeedback(text, className) {
+  hitFeedbackEl.textContent = text;
+  hitFeedbackEl.classList.remove("perfect", "good", "miss");
+  if (className) {
+    hitFeedbackEl.classList.add(className);
+  }
+}
+
+function resetComboOnMiss() {
+  combo = 0;
+}
+
+// Visual flash for pressed lane
+function flashLane(lane) {
+  const laneEl = laneEls[lane];
+  if (!laneEl) return;
+  laneEl.classList.add("flash");
+  setTimeout(() => {
+    laneEl.classList.remove("flash");
+  }, 80);
+}
+
+// Main loop
+function gameLoop() {
+  const t = getCurrentTime();
+
+  // Spawn notes when it's time
+  while (
+    nextNoteIndex < LEVEL.notes.length &&
+    t >= LEVEL.notes[nextNoteIndex].time - NOTE_TRAVEL_TIME
+  ) {
+    // Clone the note data so we don't mutate the original
+    const noteData = {
+      time: LEVEL.notes[nextNoteIndex].time,
+      lane: LEVEL.notes[nextNoteIndex].lane,
+      judged: false,
+      el: null,
+    };
+    spawnNote(noteData);
+    nextNoteIndex++;
+  }
+
+  // Update note positions and auto-miss
+  updateNotes(t);
+
+  // Check if we're done: all notes judged
+  if (
+    nextNoteIndex >= LEVEL.notes.length &&
+    activeNotes.length === 0 &&
+    !gameFinished
+  ) {
+    finishGame();
+    return;
+  }
+
+  animationId = requestAnimationFrame(gameLoop);
+}
+
+// Game control
+
+function startGame() {
+  if (gameStarted) return;
+  resetGameState();
+  gameStarted = true;
+  gameFinished = false;
+  startTime = performance.now();
+  showHitFeedback("Go!", null);
+  startBtn.disabled = true;
+  restartBtn.disabled = false;
+
+  animationId = requestAnimationFrame(gameLoop);
+}
+
+function finishGame() {
+  gameFinished = true;
+  gameStarted = false;
+  showHitFeedback("Song complete!", null);
+  startBtn.disabled = true;
+  restartBtn.disabled = false;
+
+  if (animationId !== null) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+}
+
+function resetGameState() {
+  // Clear notes from DOM
+  activeNotes.forEach((note) => {
+    if (note.el && note.el.parentElement) {
+      note.el.parentElement.removeChild(note.el);
+    }
+  });
+
+  activeNotes = [];
+  nextNoteIndex = 0;
+
+  score = 0;
+  combo = 0;
+  // bestCombo stays as record for the session
+  updateScoreUI();
+  showHitFeedback("Ready", null);
+
+  // Reset flags but don't start game yet
+  gameStarted = false;
+  gameFinished = false;
+  startTime = null;
+
+  if (animationId !== null) {
+    cancelAnimationFrame(animationId);
+    animationId = null;
+  }
+}
+
+// Input handling
+
+function onKeyDown(e) {
+  const key = e.key.toLowerCase();
+  if (!(key in KEY_TO_LANE)) return;
+  e.preventDefault(); // prevent scroll on some keys
+
+  const lane = KEY_TO_LANE[key];
+  handleHit(lane);
+}
+
+// Buttons
+
+startBtn.addEventListener("click", () => {
+  startGame();
+});
+
+restartBtn.addEventListener("click", () => {
+  resetGameState();
+  startBtn.disabled = false;
+  restartBtn.disabled = true;
+});
+
+// Keyboard listener
+window.addEventListener("keydown", onKeyDown);
+
+// Initial UI state
+resetGameState();  const level = levels[currentLevel];
 
   levelDisplay.textContent = levelNumber.toString();
   livesDisplay.textContent = lives.toString();
